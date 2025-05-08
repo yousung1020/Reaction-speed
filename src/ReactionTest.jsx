@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import "./ReactionTest.css";
 
 // 로컬 스토리지에 기록을 저장할 때 사용할 고유한 키 네임
 const LOCAL_STORAGE_KEY = "reactionTimeRecords"
@@ -12,6 +13,7 @@ function ReactionTest() {
   const [timerId, setTimerId] = useState(); // 종료할 비동기 함수 id 상태
   const [early, setEarly] = useState(false); // 일찍 클릭했는지 여부 상태
   const [records, setRecords] = useState([]); // 반응 속도 기록 상태
+  const [showRanking, setShowRanking] = useState(true)
 
   const nav = useNavigate(); // 특정 경로로 이동할 수 있는 함수
   const location = useLocation(); // 현재 url 정보를 가짐
@@ -50,6 +52,7 @@ function ReactionTest() {
     setWaiting(true);
     setReady(false);
     setEarly(false);
+    setShowRanking(false);
 
     const timeoutId = setTimeout(() => {
       setStartTime(Date.now());
@@ -70,6 +73,7 @@ function ReactionTest() {
         setStartTime(null);
         setWaiting(false);
         setReady(false);
+        setShowRanking(true);
       } else{
         // 상태값 초기화 및 비동기 함수 메모리 해제
         clearTimeout(timerId);
@@ -77,6 +81,7 @@ function ReactionTest() {
         setReady(false);
         setStartTime(null);
         setEarly(true);
+        setShowRanking(true);
       }
     } else{
       startTest(); // 초기 상태에서 클릭하면 테스트 시작
@@ -105,7 +110,7 @@ function ReactionTest() {
 
 
   return (
-    <div style={{ textAlign: "center" }}>
+    <div style={{ textAlign: "center" }} className="reaction-container">
       <h2>반응 속도 테스트 페이지!!!</h2>
 
       {early? (<p style={{color: "red"}}>너무 일찍 눌렀습니다! 다시 시작해주세요</p>) : 
@@ -122,25 +127,29 @@ function ReactionTest() {
         {waiting ? (ready ? "클릭!" : "대기 중") : "시작"}
       </button>
       {reactionTime && <p>당신의 반응 속도: {reactionTime}ms</p>}
-
-      <h2>반응 속도 순위!!!!</h2>
-      {records.sort((front, back) => front.score - back.score)
-      .map((item, index) => {
-        if(item.name !== ""){
-          if(index === 0){
-            return <div style={{fontSize: "19px"}} key={index}><b>🥇 {index + 1}위: {item.name} | {item.major} | {item.score}ms</b></div>
-          } else if(index === 1){
-            return <div key={index} style={{fontSize: "19px"}}><b>🥈 {index + 1}위: {item.name} | {item.major} | {item.score}ms</b></div>
-          } else if(index === 2){
-            return <div key={index} style={{fontSize: "19px"}}><b>🥉 {index + 1}위: {item.name} | {item.major} | {item.score}ms</b></div>
-          } else if(index < 7){
-            return <div key={index} style={{fontSize: "19px"}}>🐌 {index + 1}위: {item.name} | {item.major} | {item.score}ms</div>
-          }         
-        }
-      }   
+      
+      {showRanking && (
+        <div className="ranking">
+          <h2>반응 속도 순위!!!!</h2>
+          {records.sort((front, back) => front.score - back.score)
+          .map((item, index) => {
+            if(item.name !== ""){
+              if(index === 0){
+                return <div style={{fontSize: "19px"}} key={index}><b>🥇 {index + 1}위: {item.name} | {item.major} | {item.score}ms</b></div>
+              } else if(index === 1){
+                return <div key={index} style={{fontSize: "19px"}}><b>🥈 {index + 1}위: {item.name} | {item.major} | {item.score}ms</b></div>
+              } else if(index === 2){
+                return <div key={index} style={{fontSize: "19px"}}><b>🥉 {index + 1}위: {item.name} | {item.major} | {item.score}ms</b></div>
+              } else if(index < 7){
+                return <div key={index} style={{fontSize: "19px"}}>🐌 {index + 1}위: {item.name} | {item.major} | {item.score}ms</div>
+              }         
+            }
+          }   
+          )}
+          <button style={{marginTop: "30px"}} onClick={() => nav('/')}>사용자 정보 입력 페이지로 돌아가기</button>
+        </div>
       )}
-
-      <button style={{margin: "0 auto"}} onClick={() => nav('/')}>사용자 정보 입력 페이지로 돌아가기</button>
+      
     </div>
   );
 };
