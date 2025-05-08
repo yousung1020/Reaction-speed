@@ -1,0 +1,78 @@
+/* 최상위 태그 스타일 */
+.container{
+    position: absolute;
+    top: 20%;
+    left: 23%;
+    justify-content: center;
+    display: flex;
+    width: 800px;
+    height: 400px;
+    margin: 50px auto;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); /* 흐림 정도 20px, 색상 rgba(검정, 투명도 0.1) */
+}
+
+/* 입력 섹션 스타일 */
+.input-section{
+    background-color: #fff;
+    width: 50%;
+    display: flex;
+    flex-direction: column; /* 내부 요소를 세로 방향으로 배치 */
+    align-items: center; /* 내부 요소를 가운데 정렬 */
+    justify-content: center;
+    padding: 40px;
+}
+
+.input-section h1{
+    margin-bottom: 30px;
+}
+
+.input-group{
+    width: 80%; /* 입력 그룹의 너비를 부모 요소 기준 80%로 설정 */
+    margin-bottom: 20px;
+}
+
+.input-group input{
+    width: 100%; /* 텍스트 필드의 너비를 부모 요소 기준 100%로 설정 */
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box; /* padding과 border를 요소의 전체 너비에 포함 */
+    outline: none; /* 포커스 시 나타나는 외곽선 제거 */
+}
+
+
+
+.input-group input[type="text"]::placeholder{
+    color: gray;
+}
+
+.input-section button{
+    background-color: #4c43ce;
+    color: #fff;
+    padding: 15px 30px; /* 위 아래 패딩 15px, 좌우 30px */
+    border: none; /* 테두리 제거 */
+    border-radius: 13px;
+    cursor: pointer;
+    font-size: 1.2em;
+    transition: background-color 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.input-section button:hover{
+    background-color: #874ed2;
+}
+
+/* 동아리 소개 섹션 스타일 */
+.el-info-section { /* 배경색을 이미지의 주황색으로 설정 */
+    background: linear-gradient(2deg, #4c42cf, #9590dc);
+    color: #fff; /* 글꼴 색상을 흰색으로 설정 */
+    width: 50%; /* 오른쪽 섹션의 너비를 부모 컨테이너의 50%로 설정 */
+    display: flex; /* 내부 요소를 Flexbox 레이아웃으로 배치 */
+    flex-direction: column; /* 내부 요소를 세로 방향으로 배치 */
+    align-items: center; /* 내부 요소를 가로 방향으로 가운데 정렬 */
+    justify-content: center; /* 내부 요소를 세로 방향으로 가운데 정렬 */
+    padding: 40px;
+    text-align: center; /* 텍스트를 가운데 정렬 */
+  }
