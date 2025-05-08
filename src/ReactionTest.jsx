@@ -7,13 +7,19 @@ const LOCAL_STORAGE_KEY = "reactionTimeRecords"
 
 function ReactionTest() {
   const [startTime, setStartTime] = useState(null); // 초록색 버튼이 활성화된 순간의 시간(Date.now())
-  const [reactionTime, setReactionTime] = useState(null); // 사용자가 버튼을 누를 때의 시간 (반응속도 값)
-  const [waiting, setWaiting] = useState(false); // 기다리고 있는 중인지 여부(true면 대기)
+  // 추가: reactionTime -> 각 시도별로 반속 시간을 담을 배열로 초기화!!
+  const [reactionTimes, setReactionTimes] = useState([]); // 사용자가 버튼을 누를 때의 시간 (반응속도 값)
+  const [currentTime, setCurrentTime] = useState(null) // 현재 시도하는 반속 시간 값 상태
+  const [waiting, setWaiting] = useState(false); // 기다리고 있는 중인지 여부(true면 대기) -> 초록색 기다리는중!
   const [ready, setReady] = useState(false); // 클릭할 준비가 되었는지 여부(true일 때 대기 상태)
   const [timerId, setTimerId] = useState(); // 종료할 비동기 함수 id 상태
   const [early, setEarly] = useState(false); // 일찍 클릭했는지 여부 상태
   const [records, setRecords] = useState([]); // 반응 속도 기록 상태
-  const [showRanking, setShowRanking] = useState(true)
+  const [showRanking, setShowRanking] = useState(true) // 반응속도 테스트 중에는 랭킹 정보 숨기기 상태
+  const [avgTime, setAvgTime] = useState(null) // 평균 반응 속도 상태
+  const [attempts, setAttempts] = useState(0); // 시도 횟수 상태
+  const [startTog, setStartTog] = useState(false); // 시작 상태 토글 상태
+  const [clickTog, setClickTog] = useState(true); // 클릭 시 상태 토글 상태
 
   const nav = useNavigate(); // 특정 경로로 이동할 수 있는 함수
   const location = useLocation(); // 현재 url 정보를 가짐
@@ -48,11 +54,10 @@ function ReactionTest() {
   // 반속 테스트를 시작하는 함수("시작" 버튼을 클릭했을 때)
   const startTest = () => {
     // 초기 상태 설정
-    setReactionTime(null);
-    setWaiting(true);
+    setStartTime(null);
     setReady(false);
     setEarly(false);
-    setShowRanking(false);
+    setWaiting(true);
 
     const timeoutId = setTimeout(() => {
       setStartTime(Date.now());
@@ -62,31 +67,72 @@ function ReactionTest() {
     setTimerId(timeoutId)
   };
 
+  // 세 번의 시도중 초기 테스트 실행 함수
+  const startTestInit = () => {
+    setReactionTimes([]); // 이전 기록을 초기화
+    setWaiting(false); // 대기 상태로 초기화
+    setAvgTime(null); // 평균 반응 속도 시간 초기화
+    setShowRanking(false); // 랭킹표 숨김
+    setStartTog(true); // 테스트 활성화 
+    setAttempts(0);
+    startTest(); // 첫번째 시도 시작
+  }
+
   // 버튼 클릭시 실행되는 함수(포괄적 기능)
   const handleClick = () => {
-    // 테스트가 시작된 경우
-    if(waiting){
-      if (ready) {
-        const reactionTime = Date.now() - startTime;
-        setReactionTime(reactionTime);
-        saveRecord(reactionTime);
-        setStartTime(null);
-        setWaiting(false);
-        setReady(false);
-        setShowRanking(true);
+    // 세 번의 시도를 진행중인지 여부에 따라 최초 실행 함수와 이후 함수 실행 조건을 나눔
+    if(startTog){
+      if(clickTog){
+        // 정상 클릭시    
+        if(ready){
+          const reactionTime = Date.now() - startTime;
+          setCurrentTime(reactionTime); // 현재 반응 시간 설정
+          setReactionTimes((prev) => [...prev, reactionTime]); // 현재 시도의 반속 시간을 배열에 저장
+          setReady(false);
+          // 시도횟수가 세 번 이하인 경우
+          if(attempts < 2){
+            setAttempts((prev) => prev + 1); // 시도횟수 상태에 1 증가
+            setWaiting(false); // 다음 클릭을 대기
+            setClickTog(false);
+
+          // 세 번의 시도가 완료되었을 때
+          } else{
+            /* 평균 속도 계산식 동작 원리
+            ex) [1, 2, 3, 4, 5] 라는 배열이 있다는 가정 하에
+            1. 처음 순회 때는 sum 인수에는 0, time에는 1이 설정됨 -> sum + time을 함 (결과: 1)
+            2. 두 번째 순회 때 sum 인수에는 이전 결괏값 1, time에는 2가 설정됨 -> sum + time (결과: 3)
+            3. 해당 작업을 배열이 끝날 때까지 반복 후 (1+2+3+4+5) 결과를 해당 배열의 길이로 나눔 (5) -> 짜잔! 평균 완성!
+            */
+            const averageTime = reactionTimes.reduce((sum, time) => sum + time, 0) / reactionTimes.length;
+            setAvgTime(averageTime) // 출력 할 평균 시간 설정
+            saveRecord(averageTime); // 로컬 스토리지에 기록 저장
+            setShowRanking(true);
+            setAttempts(0);
+            setCurrentTime(null);
+            setStartTog(false);
+            setClickTog(true);
+            setWaiting(false);
+          }
+        // 너무 일찍 클릭시
+        } else{       
+          clearTimeout(timerId);
+          setWaiting(false);
+          setReady(false);
+          setStartTime(null);
+          setEarly(true);
+          setShowRanking(true);
+          setAttempts(0);
+          setCurrentTime(null);
+          setStartTog(false);
+          setClickTog(true);
+        }
       } else{
-        // 상태값 초기화 및 비동기 함수 메모리 해제
-        clearTimeout(timerId);
-        setWaiting(false);
-        setReady(false);
-        setStartTime(null);
-        setEarly(true);
-        setShowRanking(true);
+        startTest();
+        setClickTog(!clickTog);
       }
     } else{
-      startTest(); // 초기 상태에서 클릭하면 테스트 시작
+      startTestInit(); // 초기 시작
     }
-    
   };
 
   // 최초 마운트시 json 데이터 호출(로컬 스토리지에 저장되어 있던 기록(json)을 불러와 records 상태 초기화)
@@ -126,7 +172,10 @@ function ReactionTest() {
       >
         {waiting ? (ready ? "클릭!" : "대기 중") : "시작"}
       </button>
-      {reactionTime && <p>당신의 반응 속도: {reactionTime}ms</p>}
+
+      <div>시도횟수: {attempts} / 3</div>
+      {currentTime && <p>당신의 현재 반응 속도: {currentTime}ms</p>}
+      {avgTime && <p>당신의 평균 반응 속도: {Math.ceil(avgTime)}ms</p>}
       
       {showRanking && (
         <div className="ranking">
