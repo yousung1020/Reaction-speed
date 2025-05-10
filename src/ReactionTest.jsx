@@ -18,10 +18,10 @@ function ReactionTest() {
   const [showRanking, setShowRanking] = useState(true) // 반응속도 테스트 중에는 랭킹 정보 숨기기 상태
   const [avgTime, setAvgTime] = useState(null) // 평균 반응 속도 상태
   const [attempts, setAttempts] = useState(0); // 시도 횟수 상태
-  const [startTog, setStartTog] = useState(false); // 시작 상태 토글 상태
-  const [clickTog, setClickTog] = useState(true); // 클릭 시 상태 토글 상태
-
-  const currentRanking = useRef(null); // 현재 랭킹 정보를 저장하는 Ref 변수
+  const [startTog, setStartTog] = useState(false); // 시작 토글 상태
+  const [clickTog, setClickTog] = useState(true); // 클릭 시 토글 상태
+  const [btnTog, setBtnTog] = useState(false) // 버튼 토글 상태
+  const [currentRanking, setCurrentRanking] = useState(null);
 
   const nav = useNavigate(); // 특정 경로로 이동할 수 있는 함수
   const location = useLocation(); // 현재 url 정보를 가짐
@@ -60,11 +60,12 @@ function ReactionTest() {
     setReady(false);
     setEarly(false);
     setWaiting(true);
+    setBtnTog(true);
 
     const timeoutId = setTimeout(() => {
       setStartTime(Date.now());
       setReady(true);
-    }, Math.random() * 4000 + 1000); // 랜덤 대기 시간 설정
+    }, Math.random() * 3000 + 2000); // 랜덤 대기 시간 설정 (최소 2초부터 5초 사이)
 
     setTimerId(timeoutId)
   };
@@ -77,6 +78,7 @@ function ReactionTest() {
     setShowRanking(false); // 랭킹표 숨김
     setStartTog(true); // 테스트 활성화 
     setAttempts(0);
+    setBtnTog(!btnTog);
     startTest(); // 첫번째 시도 시작
   }
 
@@ -96,7 +98,7 @@ function ReactionTest() {
             setAttempts((prev) => prev + 1); // 시도횟수 상태에 1 증가
             setWaiting(false); // 다음 클릭을 대기
             setClickTog(false);
-
+            setBtnTog(!btnTog);
           // 세 번의 시도가 완료되었을 때
           } else{
             /* 평균 속도 계산식 동작 원리
@@ -106,6 +108,8 @@ function ReactionTest() {
             3. 해당 작업을 배열이 끝날 때까지 반복 후 (1+2+3+4+5) 결과를 해당 배열의 길이로 나눔 (5) -> 짜잔! 평균 완성!
             */
             const averageTime = reactionTimes.reduce((sum, time) => sum + time, 0) / reactionTimes.length;
+            // 상태 값 초기화
+            setBtnTog(false);
             setAvgTime(averageTime) // 출력 할 평균 시간 설정
             saveRecord(averageTime); // 로컬 스토리지에 기록 저장
             setAttempts(0);
@@ -113,12 +117,11 @@ function ReactionTest() {
             setStartTog(false);
             setClickTog(true);
             setWaiting(false);
-            if(userInfo.name || userInfo.major){
-              showRanking(true);
-            }
+            setShowRanking(true);
           }
         // 너무 일찍 클릭시
-        } else{       
+        } else{  
+          // 상태 값 초기화
           clearTimeout(timerId);
           setWaiting(false);
           setReady(false);
@@ -129,8 +132,9 @@ function ReactionTest() {
           setCurrentTime(null);
           setStartTog(false);
           setClickTog(true);
+          setBtnTog(false);
         }
-      } else{
+      } else{ // 처음 시작 버튼을 누른 후 나머지 두 번의 시도
         startTest();
         setClickTog(!clickTog);
       }
@@ -138,7 +142,7 @@ function ReactionTest() {
       startTestInit(); // 초기 시작
     }
   };
-  
+
   // 최초 마운트시 json 데이터 호출(로컬 스토리지에 저장되어 있던 기록(json)을 불러와 records 상태 초기화)
   useEffect(() => {
     const storedRecords = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -151,19 +155,33 @@ function ReactionTest() {
   // records 상태의 내용을 json 형태로 변환 후 브라우저 로컬 스토리지에 저장 
   useEffect(() => {
     const rank = [...records].sort((front, back) => front.score - back.score);
-    console.log(rank);
+
     if(userInfo.name && rank.length > 0){
-      for(let i = 0; i < rank.length; i++){
-        if(rank[i].name === userInfo.name){
-          currentRanking.current = i + 1;
-          break;
+      const userRecords = rank.filter(
+        (record) => (record.name === userInfo.name && record.major === userInfo.major)
+      )
+
+      if(userRecords.length > 0){
+        // 가장 마지막 기록
+        const lastRecord = userRecords[userRecords.length - 1];
+        console.log(lastRecord);
+        
+        for(let i = 0; i < rank.length; i++){
+          if(rank[i].name === lastRecord.name && rank[i].major === lastRecord.major && rank[i].score === lastRecord.score){
+            setCurrentRanking(i + 1);
+            break;
+          }
         }
+      } else{
+        setCurrentRanking(null);
       }
+    } else{
+      setCurrentRanking(null);
     }
     setShowRanking(true);
 
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(records));
-  }, [records]);
+  }, [records, userInfo.name, userInfo.major]);
 
   // setTimeout 함수는 비동기 함수이므로, 언마운트 시 클린업 함수를 적용해야 함
   useEffect(() => {
@@ -171,44 +189,50 @@ function ReactionTest() {
   }, [timerId]);
   
   return (
-    <div style={{ textAlign: "center" }} className="reaction-container">
-      <h2>반응 속도 테스트 페이지!!!</h2>
+    <>
+      <div style={{ textAlign: "center" }} className="reaction-container">
+        <h2>반응 속도 테스트 페이지!!!</h2>
 
-      {early? (<p className="early-click">너무 일찍 눌렀습니다! 다시 시작해주세요</p>) : 
-      <p className="message">{waiting ? (ready ? "지금 클릭하세요!" : "기다리세요...") : "버튼을 눌러 시작하세요"}</p>}
+        {early? (<p className="early-click">너무 일찍 눌렀습니다! 다시 시작해주세요</p>) : 
+        <p className="message">{waiting ? (ready ? "지금 클릭하세요!" : "기다리세요...") : "버튼을 눌러 시작하세요"}</p>}
 
-      <button onClick={handleClick} className="start-button">
-        {waiting ? (ready ? <p className="now">지금이니!!!</p> : <p className="wait">대기</p>) : "시작"}
-      </button>
+        <div className="attempts">시도횟수: {attempts} / 3</div>
 
-      <div className="attempts">시도횟수: {attempts} / 3</div>
-      {currentTime && <p>당신의 현재 반응 속도: {currentTime}ms</p>}
-      {avgTime && <div style={{fontSize: "19px"}}>{currentRanking.current?
-       `현재 랭킹: ${currentRanking.current}등` : ""} {userInfo.name ?
-       `${userInfo.name}님의 평균 점수: ` : "당신의 평균 점수: "} {Math.ceil(avgTime)}ms</div>}
-      
-      {showRanking && (
-        <div className="ranking-container">
-          <h2 className="ranking-title">반응 속도 순위!!!!</h2>
-          {records.sort((front, back) => front.score - back.score)
-          .map((item, index) => {
-            if(item.name !== ""){
-              if(index === 0){
-                return <div key={index} className="ranking-item"><b>🥇 {index + 1}위: {item.name} | {item.major} | {Math.ceil(item.score)}ms</b></div>
-              } else if(index === 1){
-                return <div key={index} className="ranking-item"><b>🥈 {index + 1}위: {item.name} | {item.major} | {Math.ceil(item.score)}ms</b></div>
-              } else if(index === 2){
-                return <div key={index} className="ranking-item"><b>🥉 {index + 1}위: {item.name} | {item.major} | {Math.ceil(item.score)}ms</b></div>
-              } 
-              return <div key={index} className="ranking-item">🐌 {index + 1}위: {item.name} | {item.major} | {Math.ceil(item.score)}ms</div>        
-            }
-          }   
-          )}
-          
-        </div>
-      )}
-      <button className="back-button" onClick={() => nav('/')}>사용자 정보 입력 페이지로 돌아가기</button>   
-    </div>
+        <button onClick={handleClick} className={`start-button ${btnTog? "active" : ""} 
+        ${waiting? (ready? "ready" : "waiting") : ""}`}>
+          {waiting ? (ready ? "지금이니!!!" : "대기...") : "시작"}
+        </button>
+
+        {currentTime && <p>당신의 현재 반응 속도: {currentTime}ms</p>}
+        {avgTime && <div className="rank-info">{currentRanking?
+          `현재 랭킹: ${currentRanking}등` : ""} <br></br> {userInfo.name ?
+          `${userInfo.name}님의 평균 점수: ` : "당신의 평균 점수: "} {Math.ceil(avgTime)}ms</div>}
+        {showRanking && (<button className="back-button" onClick={() => nav('/')}>사용자 정보 입력 페이지로 돌아가기</button>)}
+      </div>
+
+      <div>
+        {showRanking && (
+          <div className="ranking-container">
+            <h2 className="ranking-title">반응 속도 순위!!!!</h2>
+            {records.sort((front, back) => front.score - back.score)
+            .map((item, index) => {
+              if(item.name !== ""){
+                if(index === 0){
+                  return <div key={index} className="ranking-item"><b>🥇 {index + 1}위: {item.name} | {item.major} | {Math.ceil(item.score)}ms</b></div>
+                } else if(index === 1){
+                  return <div key={index} className="ranking-item"><b>🥈 {index + 1}위: {item.name} | {item.major} | {Math.ceil(item.score)}ms</b></div>
+                } else if(index === 2){
+                  return <div key={index} className="ranking-item"><b>🥉 {index + 1}위: {item.name} | {item.major} | {Math.ceil(item.score)}ms</b></div>
+                } 
+                return <div key={index} className="ranking-item">🐌 {index + 1}위: {item.name} | {item.major} | {Math.ceil(item.score)}ms</div>        
+              }
+            }   
+            )}
+            
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 
