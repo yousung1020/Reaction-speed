@@ -1,4 +1,85 @@
 .reaction-container{
+    display: flex;
+    flex-direction: column; /* 요소들을 세로로 배치 */
+    align-items: center; /* 가운데 정렬 */
+    justify-content: flex-start; /* 위에서부터 요소 배치 */
+    min-height: 100vh;
+    padding: 40px;
+    /* background-color: #aeb2e9; */
     position: relative;
-    top: 190px;
+}
+
+.ranking-container{
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    opacity: 0.8;
+    padding: 23px;
+    padding-top: 0%;
+    border-radius: 15px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+    text-align: left;
+    background-color: #e2e4f9;
+}
+
+.early-click{
+    font-size: 1.1rem;
+    color: red;
+}
+
+.ranking-title{
+    font-size: 18px;
+}
+
+.ranking-title{
+    text-align: center;
+}
+
+.ranking-item{
+    margin-bottom: 5px;
+    font-size: 13px;
+}
+
+.start-button{
+    font-size: 2rem;
+    padding: 30px 60px;
+    background-color: #1ed91b;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background-color 0.4s ease;
+    font-size: 25px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+}
+
+.wait{
+    
+}
+
+.message{
+    font-size: 1.2rem;
+    margin-top: 10px;
+
+}
+
+.attempts{
+    margin-top: 20px;
+}
+
+.back-button{
+    margin-top: 30px;
+    padding: 20px 40px;
+    font-size: 1.1rem;
+    background-color: #bcdffd;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.4s ease;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+}
+
+.back-button:hover{
+    background-color: #c2beff;
 }

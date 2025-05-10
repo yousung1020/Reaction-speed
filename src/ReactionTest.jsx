@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./ReactionTest.css";
 
@@ -20,6 +20,8 @@ function ReactionTest() {
   const [attempts, setAttempts] = useState(0); // 시도 횟수 상태
   const [startTog, setStartTog] = useState(false); // 시작 상태 토글 상태
   const [clickTog, setClickTog] = useState(true); // 클릭 시 상태 토글 상태
+
+  const currentRanking = useRef(null); // 현재 랭킹 정보를 저장하는 Ref 변수
 
   const nav = useNavigate(); // 특정 경로로 이동할 수 있는 함수
   const location = useLocation(); // 현재 url 정보를 가짐
@@ -43,12 +45,12 @@ function ReactionTest() {
         return [
           ...prev,
           {
-            score: time,
-            ...userInfo
+            ...userInfo,
+            score: time
           }
         ]
       })
-    }    
+    }
   };
 
   // 반속 테스트를 시작하는 함수("시작" 버튼을 클릭했을 때)
@@ -106,12 +108,14 @@ function ReactionTest() {
             const averageTime = reactionTimes.reduce((sum, time) => sum + time, 0) / reactionTimes.length;
             setAvgTime(averageTime) // 출력 할 평균 시간 설정
             saveRecord(averageTime); // 로컬 스토리지에 기록 저장
-            setShowRanking(true);
             setAttempts(0);
             setCurrentTime(null);
             setStartTog(false);
             setClickTog(true);
             setWaiting(false);
+            if(userInfo.name || userInfo.major){
+              showRanking(true);
+            }
           }
         // 너무 일찍 클릭시
         } else{       
@@ -134,7 +138,7 @@ function ReactionTest() {
       startTestInit(); // 초기 시작
     }
   };
-
+  
   // 최초 마운트시 json 데이터 호출(로컬 스토리지에 저장되어 있던 기록(json)을 불러와 records 상태 초기화)
   useEffect(() => {
     const storedRecords = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -146,59 +150,64 @@ function ReactionTest() {
   // records 상태가 변경될 때(데이터를 저장할 상황이 발생되었을 때) 업데이트
   // records 상태의 내용을 json 형태로 변환 후 브라우저 로컬 스토리지에 저장 
   useEffect(() => {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(records));
-  }, [records])
+    const rank = [...records].sort((front, back) => front.score - back.score);
+    console.log(rank);
+    if(userInfo.name && rank.length > 0){
+      for(let i = 0; i < rank.length; i++){
+        if(rank[i].name === userInfo.name){
+          currentRanking.current = i + 1;
+          break;
+        }
+      }
+    }
+    setShowRanking(true);
+
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(records));
+  }, [records]);
 
   // setTimeout 함수는 비동기 함수이므로, 언마운트 시 클린업 함수를 적용해야 함
   useEffect(() => {
-    return () => clearTimeout(timerId);   
+    return () => clearTimeout(timerId);
   }, [timerId]);
-
-
+  
   return (
     <div style={{ textAlign: "center" }} className="reaction-container">
       <h2>반응 속도 테스트 페이지!!!</h2>
 
-      {early? (<p style={{color: "red"}}>너무 일찍 눌렀습니다! 다시 시작해주세요</p>) : 
-      <p>{waiting ? (ready ? "지금 클릭하세요!" : "기다리세요...") : "버튼을 눌러 시작하세요"}</p>}
-      
-      <button
-        onClick={handleClick}
-        style={{
-          fontSize: "20px",
-          padding: "10px 20px",
-          backgroundColor: ready ? "green" : "gray",
-        }}
-      >
-        {waiting ? (ready ? "클릭!" : "대기 중") : "시작"}
+      {early? (<p className="early-click">너무 일찍 눌렀습니다! 다시 시작해주세요</p>) : 
+      <p className="message">{waiting ? (ready ? "지금 클릭하세요!" : "기다리세요...") : "버튼을 눌러 시작하세요"}</p>}
+
+      <button onClick={handleClick} className="start-button">
+        {waiting ? (ready ? <p className="now">지금이니!!!</p> : <p className="wait">대기</p>) : "시작"}
       </button>
 
-      <div>시도횟수: {attempts} / 3</div>
+      <div className="attempts">시도횟수: {attempts} / 3</div>
       {currentTime && <p>당신의 현재 반응 속도: {currentTime}ms</p>}
-      {avgTime && <p>당신의 평균 반응 속도: {Math.ceil(avgTime)}ms</p>}
+      {avgTime && <div style={{fontSize: "19px"}}>{currentRanking.current?
+       `현재 랭킹: ${currentRanking.current}등` : ""} {userInfo.name ?
+       `${userInfo.name}님의 평균 점수: ` : "당신의 평균 점수: "} {Math.ceil(avgTime)}ms</div>}
       
       {showRanking && (
-        <div className="ranking">
-          <h2>반응 속도 순위!!!!</h2>
+        <div className="ranking-container">
+          <h2 className="ranking-title">반응 속도 순위!!!!</h2>
           {records.sort((front, back) => front.score - back.score)
           .map((item, index) => {
             if(item.name !== ""){
               if(index === 0){
-                return <div style={{fontSize: "19px"}} key={index}><b>🥇 {index + 1}위: {item.name} | {item.major} | {item.score}ms</b></div>
+                return <div key={index} className="ranking-item"><b>🥇 {index + 1}위: {item.name} | {item.major} | {Math.ceil(item.score)}ms</b></div>
               } else if(index === 1){
-                return <div key={index} style={{fontSize: "19px"}}><b>🥈 {index + 1}위: {item.name} | {item.major} | {item.score}ms</b></div>
+                return <div key={index} className="ranking-item"><b>🥈 {index + 1}위: {item.name} | {item.major} | {Math.ceil(item.score)}ms</b></div>
               } else if(index === 2){
-                return <div key={index} style={{fontSize: "19px"}}><b>🥉 {index + 1}위: {item.name} | {item.major} | {item.score}ms</b></div>
-              } else if(index < 7){
-                return <div key={index} style={{fontSize: "19px"}}>🐌 {index + 1}위: {item.name} | {item.major} | {item.score}ms</div>
-              }         
+                return <div key={index} className="ranking-item"><b>🥉 {index + 1}위: {item.name} | {item.major} | {Math.ceil(item.score)}ms</b></div>
+              } 
+              return <div key={index} className="ranking-item">🐌 {index + 1}위: {item.name} | {item.major} | {Math.ceil(item.score)}ms</div>        
             }
           }   
           )}
-          <button style={{marginTop: "30px"}} onClick={() => nav('/')}>사용자 정보 입력 페이지로 돌아가기</button>
+          
         </div>
       )}
-      
+      <button className="back-button" onClick={() => nav('/')}>사용자 정보 입력 페이지로 돌아가기</button>   
     </div>
   );
 };
