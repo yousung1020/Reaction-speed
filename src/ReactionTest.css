@@ -2,12 +2,11 @@
     display: flex;
     flex-direction: column; /* 요소들을 세로로 배치 */
     align-items: center; /* 가운데 정렬 */
-    justify-content: flex-start; /* 위에서부터 요소 배치 */
-    min-height: 100vh;
-    padding: 40px;
+    justify-content: center; /* 위에서부터 요소 배치 */
+    padding: 20px;
     /* background-color: #aeb2e9; */
     position: relative;
-    margin-top: 9%;
+    margin-top: 12%;
     overflow-y: hidden;
 }
 
@@ -71,17 +70,18 @@ button:focus{
 .start-button.active.waiting{
     background-color: rgb(53, 192, 230);
     transition: padding 0.3s ease;
-    padding: 100px 200px;
+    padding: 120px 240px;
 }
 
 .start-button.active.ready{
     background-color: rgba(255, 0, 0, 0.921);
     transition: padding 0.3s ease;
-    padding: 100px 200px;
+    padding: 120px 240px;
 }
 
 .message{
     font-size: 1.2rem;
+    font-weight: 600;
     margin-top: 10px;
 
 }
@@ -105,4 +105,20 @@ button:focus{
 
 .back-button:hover{
     background-color: #c2beff;
+}
+
+.progress-bar-container{
+    width: 35%;
+    height: 20px;
+    background-color: #7b88ff;
+    border-radius: 10px;
+    margin-top: 20px;
+    overflow: hidden;
+}
+
+.progress-bar{
+    height: 100%;
+    background-color: #2bff17;
+    border-radius: 10px;
+    transition: width 0.3s ease-in-out;
 }

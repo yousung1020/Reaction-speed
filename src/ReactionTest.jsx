@@ -21,7 +21,8 @@ function ReactionTest() {
   const [startTog, setStartTog] = useState(false); // 시작 토글 상태
   const [clickTog, setClickTog] = useState(true); // 클릭 시 토글 상태
   const [btnTog, setBtnTog] = useState(false) // 버튼 토글 상태
-  const [currentRanking, setCurrentRanking] = useState(null);
+  const [currentRanking, setCurrentRanking] = useState(null); // 현재 랭킹 상태
+  const [progress, setProgress] = useState(0); // 진행률 상태(0 ~ 100)
 
   const nav = useNavigate(); // 특정 경로로 이동할 수 있는 함수
   const location = useLocation(); // 현재 url 정보를 가짐
@@ -79,6 +80,7 @@ function ReactionTest() {
     setStartTog(true); // 테스트 활성화 
     setAttempts(0);
     setBtnTog(!btnTog);
+    setProgress(0);
     startTest(); // 첫번째 시도 시작
   }
 
@@ -99,6 +101,7 @@ function ReactionTest() {
             setWaiting(false); // 다음 클릭을 대기
             setClickTog(false);
             setBtnTog(!btnTog);
+            setProgress((prev) => prev + 33); // 각 시도 완료 시 업데이트
           // 세 번의 시도가 완료되었을 때
           } else{
             /* 평균 속도 계산식 동작 원리
@@ -118,6 +121,7 @@ function ReactionTest() {
             setClickTog(true);
             setWaiting(false);
             setShowRanking(true);
+            setProgress(100);
           }
         // 너무 일찍 클릭시
         } else{  
@@ -133,6 +137,7 @@ function ReactionTest() {
           setStartTog(false);
           setClickTog(true);
           setBtnTog(false);
+          setProgress(0);
         }
       } else{ // 처음 시작 버튼을 누른 후 나머지 두 번의 시도
         startTest();
@@ -197,6 +202,9 @@ function ReactionTest() {
         <p className="message">{waiting ? (ready ? "지금 클릭하세요!" : "기다리세요...") : "버튼을 눌러 시작하세요"}</p>}
 
         <div className="attempts">시도횟수: {attempts} / 3</div>
+        <div className="progress-bar-container">
+          <div className="progress-bar" style={{width: `${progress}%`}}></div>
+        </div>
 
         <button onClick={handleClick} className={`start-button ${btnTog? "active" : ""} 
         ${waiting? (ready? "ready" : "waiting") : ""}`}>
