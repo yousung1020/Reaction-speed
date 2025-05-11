@@ -159,10 +159,11 @@ function ReactionTest() {
   // records 상태가 변경될 때(데이터를 저장할 상황이 발생되었을 때) 업데이트
   // records 상태의 내용을 json 형태로 변환 후 브라우저 로컬 스토리지에 저장 
   useEffect(() => {
+    // [...records] 형태를 사용하는 이유: 원본 records 값의 불변성을 지키기 위함 -> 얕은 복사 방식을 활용
     const rank = [...records].sort((front, back) => front.score - back.score);
-
+    console.log(records);
     if(userInfo.name && rank.length > 0){
-      const userRecords = rank.filter(
+      const userRecords = [...records].filter(
         (record) => (record.name === userInfo.name && record.major === userInfo.major)
       )
 
@@ -170,6 +171,7 @@ function ReactionTest() {
         // 가장 마지막 기록
         const lastRecord = userRecords[userRecords.length - 1];
         console.log(lastRecord);
+        console.log(userRecords);
         
         for(let i = 0; i < rank.length; i++){
           if(rank[i].name === lastRecord.name && rank[i].major === lastRecord.major && rank[i].score === lastRecord.score){
@@ -222,7 +224,7 @@ function ReactionTest() {
         {showRanking && (
           <div className="ranking-container">
             <h2 className="ranking-title">반응 속도 순위!!!!</h2>
-            {records.sort((front, back) => front.score - back.score)
+            {[...records].sort((front, back) => front.score - back.score)
             .map((item, index) => {
               if(item.name !== ""){
                 if(index === 0){

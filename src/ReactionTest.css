@@ -95,7 +95,7 @@ button:focus{
     margin-top: 30px;
     padding: 20px 40px;
     font-size: 1.1rem;
-    background-color: #bcdffd;
+    background-color: #e9f4fd;
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -110,7 +110,7 @@ button:focus{
 .progress-bar-container{
     width: 35%;
     height: 20px;
-    background-color: #7b88ff;
+    background: linear-gradient(2deg, #4c42cf, #d1d4ff);
     border-radius: 10px;
     margin-top: 20px;
     overflow: hidden;
