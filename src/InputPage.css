@@ -1,13 +1,14 @@
 /* 최상위 태그 스타일 */
 .container{
-    position: absolute;
-    top: 20%;
-    left: 23%;
-    justify-content: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     display: flex;
-    width: 800px;
-    height: 400px;
-    margin: 50px auto;
+    width: 80%;
+    max-width: 800px;
+    height: auto;
+    margin: 0 auto;
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); /* 흐림 정도 20px, 색상 rgba(검정, 투명도 0.1) */
@@ -22,6 +23,7 @@
     align-items: center; /* 내부 요소를 가운데 정렬 */
     justify-content: center;
     padding: 40px;
+    box-sizing: border-box;
 }
 
 .input-section h1{
@@ -75,4 +77,5 @@
     justify-content: center; /* 내부 요소를 세로 방향으로 가운데 정렬 */
     padding: 40px;
     text-align: center; /* 텍스트를 가운데 정렬 */
+    box-sizing: border-box;
   }

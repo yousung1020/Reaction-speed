@@ -198,7 +198,7 @@ function ReactionTest() {
   return (
     <>
       <div style={{ textAlign: "center" }} className="reaction-container">
-        <h2>반응 속도 테스트 페이지!!!</h2>
+        <h2>반응 속도 테스트 페이지</h2>
 
         {early? (<p className="early-click">너무 일찍 눌렀습니다! 다시 시작해주세요</p>) : 
         <p className="message">{waiting ? (ready ? "지금 클릭하세요!" : "기다리세요...") : "버튼을 눌러 시작하세요"}</p>}

@@ -6,7 +6,7 @@
     padding: 20px;
     /* background-color: #aeb2e9; */
     position: relative;
-    margin-top: 12%;
+    margin-top: 11%;
     overflow-y: hidden;
 }
 
@@ -110,7 +110,7 @@ button:focus{
 .progress-bar-container{
     width: 35%;
     height: 20px;
-    background: linear-gradient(2deg, #4c42cf, #d1d4ff);
+    background: linear-gradient(2deg, #2375e0, #a0c4e6);
     border-radius: 10px;
     margin-top: 20px;
     overflow: hidden;
@@ -118,7 +118,7 @@ button:focus{
 
 .progress-bar{
     height: 100%;
-    background-color: #2bff17;
+    background: linear-gradient(2deg,#96c3d9, #81cff6);
     border-radius: 10px;
     transition: width 0.3s ease-in-out;
 }
